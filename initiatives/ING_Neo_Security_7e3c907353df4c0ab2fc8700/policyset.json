@@ -1,0 +1,145 @@
+{
+ "properties": {
+  "displayName": "ING Neo Security",
+  "policyType": "Custom",
+  "description": "",
+  "metadata": {
+   "createdBy": "f133267d-b7e3-4372-8331-ef2b6f5c4a4c",
+   "createdOn": "2022-06-08T23:39:24.1266177Z",
+   "updatedBy": "f133267d-b7e3-4372-8331-ef2b6f5c4a4c",
+   "updatedOn": "2022-09-01T10:08:58.5975782Z",
+   "parameterScopes": {
+    "listOfAllowedLocations : Allowed locations": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e"
+   }
+  },
+  "parameters": {
+   "Subnets should have an NSG": {
+    "type": "string",
+    "metadata": {
+     "displayName": "Subnets should have an NSG",
+     "description": null
+    },
+    "allowedValues": [
+     "audit",
+     "deny",
+     "disabled"
+    ],
+    "defaultValue": "audit"
+   },
+   "Deploy default deny internet outbound nsg rule": {
+    "type": "string",
+    "metadata": {
+     "displayName": "Deploy default deny internet outbound nsg rule",
+     "description": null
+    },
+    "allowedValues": [
+     "deployIfNotExists",
+     "disabled"
+    ],
+    "defaultValue": "deployIfNotExists"
+   },
+   "Deploy default allow azurecloud outbound nsg rule": {
+    "type": "string",
+    "metadata": {
+     "displayName": "Deploy default allow azurecloud outbound nsg rule",
+     "description": null
+    },
+    "allowedValues": [
+     "deployIfNotExists",
+     "disabled"
+    ],
+    "defaultValue": "deployIfNotExists"
+   },
+   "Allowed locations": {
+    "type": "array",
+    "metadata": {
+     "displayName": "Allowed locations",
+     "description": null,
+     "strongType": "location"
+    },
+    "defaultValue": [
+     "europe",
+     "northeurope",
+     "westeurope"
+    ]
+   },
+   "Deploy flow log backends to this resource group": {
+    "type": "string",
+    "metadata": {
+     "displayName": "Deploy flow log backends to this resource group",
+     "strongType": "existingResourceGroups"
+    },
+    "defaultValue": "monitoring-rg"
+   },
+   "Deploy flow log backends to this subscription": {
+    "type": "string",
+    "metadata": {
+     "displayName": "Deploy flow log backends to this subscription"
+    },
+    "allowedValues": [
+     "73b71d4a-832c-4e7a-b164-2165e2d8ff9d"
+    ],
+    "defaultValue": "73b71d4a-832c-4e7a-b164-2165e2d8ff9d"
+   }
+  },
+  "policyDefinitions": [
+   {
+    "policyDefinitionReferenceId": "Subnets should have an NSG",
+    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policyDefinitions/0271f68d-6b1a-4e3f-91f1-92c0e6d6b284",
+    "parameters": {
+     "effect": {
+      "value": "[parameters('Subnets should have an NSG')]"
+     }
+    },
+    "groupNames": []
+   },
+   {
+    "policyDefinitionReferenceId": "Deploy default deny internet outbound nsg rule",
+    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policyDefinitions/da8a2f31-9b97-45e9-bba1-75d825fa5734",
+    "parameters": {
+     "effect": {
+      "value": "[parameters('Deploy default deny internet outbound nsg rule')]"
+     }
+    },
+    "groupNames": []
+   },
+   {
+    "policyDefinitionReferenceId": "Deploy default allow azurecloud outbound nsg rule",
+    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policyDefinitions/da652176-3f2f-4c63-8225-032c46a11e0c",
+    "parameters": {
+     "effect": {
+      "value": "[parameters('Deploy default allow azurecloud outbound nsg rule')]"
+     }
+    },
+    "groupNames": []
+   },
+   {
+    "policyDefinitionReferenceId": "Allowed locations",
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c",
+    "parameters": {
+     "listOfAllowedLocations": {
+      "value": "[parameters('Allowed locations')]"
+     }
+    },
+    "groupNames": []
+   },
+   {
+    "policyDefinitionReferenceId": "Deploy flow resource to network security groups",
+    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policyDefinitions/467f5ae1-ea01-4d68-ad74-f0afaee2869d",
+    "parameters": {
+     "resourceGroupName": {
+      "value": "[parameters('Deploy flow log backends to this resource group')]"
+     },
+     "subscriptionId": {
+      "value": "[parameters('Deploy flow log backends to this subscription')]"
+     }
+    },
+    "groupNames": []
+   }
+  ],
+  "policyDefinitionGroups": []
+ },
+ "id": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policySetDefinitions/7e3c907353df4c0ab2fc8700",
+ "type": "Microsoft.Authorization/policySetDefinitions",
+ "name": "7e3c907353df4c0ab2fc8700"
+}
