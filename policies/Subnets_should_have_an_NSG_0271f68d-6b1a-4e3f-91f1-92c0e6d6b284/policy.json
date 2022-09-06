@@ -1,0 +1,100 @@
+{
+ "properties": {
+  "displayName": "Subnets should have an NSG",
+  "policyType": "Custom",
+  "mode": "All",
+  "description": "This policy audits subnets without an NSG attached to them.",
+  "metadata": {
+   "category": "Network",
+   "createdBy": "7950837e-662f-4149-b58c-6d8b9f0e5513",
+   "createdOn": "2022-03-09T17:31:32.5402085Z",
+   "updatedBy": "7950837e-662f-4149-b58c-6d8b9f0e5513",
+   "updatedOn": "2022-03-29T12:46:05.7833555Z"
+  },
+  "parameters": {
+   "effect": {
+    "type": "String",
+    "metadata": {
+     "displayName": "Effect",
+     "description": "The effect of the policy"
+    },
+    "allowedValues": [
+     "audit",
+     "deny",
+     "disabled"
+    ],
+    "defaultValue": "deny"
+   }
+  },
+  "policyRule": {
+   "if": {
+    "anyOf": [
+     {
+      "allOf": [
+       {
+        "equals": "Microsoft.Network/virtualNetworks/subnets",
+        "field": "type"
+       },
+       {
+        "exists": "false",
+        "field": "Microsoft.Network/virtualNetworks/subnets/networkSecurityGroup.id"
+       },
+       {
+        "field": "name",
+        "notIn": [
+         "GatewaySubnet",
+         "AzureFirewallSubnet",
+         "AzureFirewallManagementSubnet"
+        ]
+       },
+       {
+        "equals": 0,
+        "value": "[length(field('Microsoft.Network/virtualNetworks/subnets/privateEndpoints[*]'))]"
+       }
+      ]
+     },
+     {
+      "allOf": [
+       {
+        "equals": "Microsoft.Network/virtualNetworks",
+        "field": "type"
+       },
+       {
+        "count": {
+         "field": "Microsoft.Network/virtualNetworks/subnets[*]",
+         "where": {
+          "allOf": [
+           {
+            "exists": "false",
+            "field": "Microsoft.Network/virtualNetworks/subnets[*].networkSecurityGroup.id"
+           },
+           {
+            "field": "Microsoft.Network/virtualNetworks/subnets[*].name",
+            "notIn": [
+             "GatewaySubnet",
+             "AzureFirewallSubnet",
+             "AzureFirewallManagementSubnet"
+            ]
+           },
+           {
+            "equals": 0,
+            "value": "[length(field('Microsoft.Network/virtualNetworks/subnets[*].privateEndpoints[*]'))]"
+           }
+          ]
+         }
+        },
+        "notEquals": 0
+       }
+      ]
+     }
+    ]
+   },
+   "then": {
+    "effect": "[parameters('effect')]"
+   }
+  }
+ },
+ "id": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policyDefinitions/0271f68d-6b1a-4e3f-91f1-92c0e6d6b284",
+ "type": "Microsoft.Authorization/policyDefinitions",
+ "name": "0271f68d-6b1a-4e3f-91f1-92c0e6d6b284"
+}

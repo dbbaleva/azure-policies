@@ -1,0 +1,217 @@
+{
+ "properties": {
+  "displayName": "Deploy flow resource to network security groups",
+  "policyType": "Custom",
+  "mode": "Indexed",
+  "description": "Configures flow log resource to network security groups. It will allow to log information about IP traffic flowing through an network security group. Flow log helps to identify unknown or undesired traffic, verify network isolation and compliance with enterprise access rules, analyze network flows from compromised IPs and network interfaces.",
+  "metadata": {
+   "category": "Network",
+   "createdBy": "f133267d-b7e3-4372-8331-ef2b6f5c4a4c",
+   "createdOn": "2022-08-24T14:58:02.9028056Z",
+   "updatedBy": "f133267d-b7e3-4372-8331-ef2b6f5c4a4c",
+   "updatedOn": "2022-09-02T11:21:59.9600441Z"
+  },
+  "parameters": {
+   "resourceGroupName": {
+    "type": "String",
+    "metadata": {
+     "displayName": "Deploy flow log backends to this resource group",
+     "description": "Deploy flow log backends to this resource group",
+     "strongType": "existingResourceGroups"
+    },
+    "defaultValue": "monitoring-rg"
+   },
+   "subscriptionId": {
+    "type": "String",
+    "metadata": {
+     "displayName": "Deploy flow log backends to this subscription",
+     "description": "Deploy flow log backends to this subscription"
+    },
+    "defaultValue": "73b71d4a-832c-4e7a-b164-2165e2d8ff9d"
+   }
+  },
+  "policyRule": {
+   "if": {
+    "allOf": [
+     {
+      "field": "type",
+      "equals": "Microsoft.Network/networkSecurityGroups"
+     }
+    ]
+   },
+   "then": {
+    "effect": "deployIfNotExists",
+    "details": {
+     "type": "Microsoft.Network/networkSecurityGroups",
+     "existenceCondition": {
+      "allOf": [
+       {
+        "count": {
+         "field": "Microsoft.Network/networkSecurityGroups/flowLogs[*]",
+         "where": {
+          "allOf": [
+           {
+            "field": "Microsoft.Network/networkSecurityGroups/flowLogs[*].id",
+            "contains": "[guid(concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', field('name')))]"
+           }
+          ]
+         }
+        },
+        "greater": 0
+       }
+      ]
+     },
+     "roleDefinitionIds": [
+      "/providers/microsoft.authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+     ],
+     "deployment": {
+      "properties": {
+       "mode": "incremental",
+       "template": {
+        "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+        "contentVersion": "1.0.0.0",
+        "parameters": {
+         "backendSub": {
+          "type": "string"
+         },
+         "backendRG": {
+          "type": "string"
+         },
+         "nsgId": {
+          "type": "string"
+         },
+         "location": {
+          "type": "string"
+         },
+         "timeStamp": {
+          "type": "string",
+          "defaultValue": "[utcNow()]"
+         }
+        },
+        "variables": {
+         "networkWatcherName": "[concat('NetworkWatcher_', parameters('location'))]",
+         "flowLogName": "[concat(variables('networkWatcherName'), '/', guid(parameters('nsgId')))]",
+         "workSpaceName": "[concat('nsg-flow-logs-', parameters('location'))]",
+         "storageAccountName": "[take(concat('flowlog', parameters('location'), uniqueString(parameters('location'))), 24)]",
+         "backendDeployment": "[concat('backend-', guid(parameters('nsgId')), '-', parameters('timeStamp'))]",
+         "nsgFlowLogDeployment": "[concat('flowlog-', guid(parameters('nsgId')), '-', parameters('timeStamp'))]"
+        },
+        "resources": [
+         {
+          "type": "Microsoft.Resources/deployments",
+          "apiVersion": "2021-04-01",
+          "name": "[variables('backendDeployment')]",
+          "resourceGroup": "[parameters('backendRG')]",
+          "subscriptionId": "[parameters('backendSub')]",
+          "properties": {
+           "mode": "Incremental",
+           "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "resources": [
+             {
+              "apiVersion": "2019-06-01",
+              "type": "Microsoft.Storage/storageAccounts",
+              "kind": "StorageV2",
+              "name": "[variables('storageAccountName')]",
+              "location": "[parameters('location')]",
+              "tags": {},
+              "sku": {
+               "name": "Standard_LRS"
+              },
+              "properties": {
+               "supportsHttpsTrafficOnly": true,
+               "minimumTlsVersion": "TLS1_2",
+               "allowBlobPublicAccess": false,
+               "bypass": "Logging, AzureServices",
+               "virtualNetworkRules": [],
+               "ipRules": [],
+               "defaultAction": "Deny"
+              }
+             },
+             {
+              "apiVersion": "2021-06-01",
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "location": "[parameters('location')]",
+              "name": "[variables('workSpaceName')]",
+              "properties": {
+               "sku": {
+                "name": "Standalone"
+               }
+              }
+             }
+            ]
+           }
+          }
+         },
+         {
+          "type": "Microsoft.Resources/deployments",
+          "apiVersion": "2021-04-01",
+          "name": "[variables('nsgFlowLogDeployment')]",
+          "resourceGroup": "NetworkWatcherRG",
+          "dependsOn": [
+           "[variables('backendDeployment')]"
+          ],
+          "properties": {
+           "mode": "Incremental",
+           "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "resources": [
+             {
+              "name": "[variables('flowLogName')]",
+              "type": "Microsoft.Network/networkWatchers/flowLogs",
+              "apiVersion": "2020-05-01",
+              "location": "[parameters('location')]",
+              "tags": {},
+              "properties": {
+               "targetResourceId": "[parameters('nsgId')]",
+               "storageId": "[resourceId(parameters('backendSub'), parameters('backendRG'), 'Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+               "enabled": true,
+               "format": {
+                "type": "JSON",
+                "version": 2
+               },
+               "flowAnalyticsConfiguration": {
+                "networkWatcherFlowAnalyticsConfiguration": {
+                 "enabled": true,
+                 "workspaceResourceId": "[resourceId(parameters('backendSub'), parameters('backendRG'), 'Microsoft.OperationalInsights/workspaces', variables('workSpaceName'))]",
+                 "trafficAnalyticsInterval": 10
+                }
+               },
+               "retentionPolicy": {
+                "days": 30,
+                "enabled": true
+               }
+              }
+             }
+            ]
+           }
+          }
+         }
+        ]
+       },
+       "parameters": {
+        "backendSub": {
+         "value": "[parameters('subscriptionId')]"
+        },
+        "backendRG": {
+         "value": "[parameters('resourceGroupName')]"
+        },
+        "nsgId": {
+         "value": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkSecurityGroups/', field('name'))]"
+        },
+        "location": {
+         "value": "[field('location')]"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "id": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policyDefinitions/467f5ae1-ea01-4d68-ad74-f0afaee2869d",
+ "type": "Microsoft.Authorization/policyDefinitions",
+ "name": "467f5ae1-ea01-4d68-ad74-f0afaee2869d"
+}

@@ -1,0 +1,130 @@
+{
+ "properties": {
+  "displayName": "Deploy default deny internet outbound nsg rule",
+  "policyType": "Custom",
+  "mode": "Indexed",
+  "metadata": {
+   "category": "Network",
+   "createdBy": "395fdce6-1427-4e34-8a47-2c5efca2dc4b",
+   "createdOn": "2022-03-10T17:38:58.2572936Z",
+   "updatedBy": "f133267d-b7e3-4372-8331-ef2b6f5c4a4c",
+   "updatedOn": "2022-06-08T22:28:42.9596924Z"
+  },
+  "parameters": {
+   "effect": {
+    "type": "String",
+    "metadata": {
+     "displayName": "Effect",
+     "description": "The effect determines what happens when the policy rule is evaluated to match"
+    },
+    "allowedValues": [
+     "deployIfNotExists",
+     "disabled"
+    ],
+    "defaultValue": "deployIfNotExists"
+   },
+   "nsgRuleName": {
+    "type": "String",
+    "metadata": {
+     "displayName": "NSG rule name",
+     "description": "The name of the NSG rule"
+    },
+    "defaultValue": "DenyInternetOutBound"
+   }
+  },
+  "policyRule": {
+   "if": {
+    "field": "type",
+    "equals": "Microsoft.Network/networkSecurityGroups"
+   },
+   "then": {
+    "effect": "[parameters('effect')]",
+    "details": {
+     "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+     "existenceCondition": {
+      "allOf": [
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/protocol",
+        "equals": "*"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/sourcePortRange",
+        "equals": "*"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/destinationPortRange",
+        "equals": "*"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/sourceAddressPrefix",
+        "equals": "*"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/destinationAddressPrefix",
+        "equals": "Internet"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/access",
+        "equals": "Deny"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/priority",
+        "equals": 4096
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/direction",
+        "equals": "Outbound"
+       }
+      ]
+     },
+     "roleDefinitionIds": [
+      "/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7"
+     ],
+     "deployment": {
+      "properties": {
+       "mode": "Incremental",
+       "parameters": {
+        "ruleName": {
+         "value": "[concat(field('name'), '/', parameters('nsgRuleName'))]"
+        }
+       },
+       "template": {
+        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+        "contentVersion": "1.0.0.0",
+        "parameters": {
+         "ruleName": {
+          "type": "String"
+         }
+        },
+        "resources": [
+         {
+          "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+          "apiVersion": "2020-11-01",
+          "name": "[parameters('ruleName')]",
+          "properties": {
+           "protocol": "*",
+           "sourcePortRange": "*",
+           "destinationPortRange": "*",
+           "sourceAddressPrefix": "*",
+           "destinationAddressPrefix": "Internet",
+           "access": "Deny",
+           "priority": 4096,
+           "direction": "Outbound",
+           "sourcePortRanges": [],
+           "destinationPortRanges": [],
+           "sourceAddressPrefixes": [],
+           "destinationAddressPrefixes": []
+          }
+         }
+        ]
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "id": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policyDefinitions/da8a2f31-9b97-45e9-bba1-75d825fa5734",
+ "type": "Microsoft.Authorization/policyDefinitions",
+ "name": "da8a2f31-9b97-45e9-bba1-75d825fa5734"
+}

@@ -1,0 +1,40 @@
+name: manage-azure-policy-34cd9027
+on:
+  workflow_dispatch:
+    inputs:
+      remarks:
+        description: 'Reason for triggering the workflow run'
+        required: false
+        default: 'Updating Azure Policies'
+
+
+## Uncomment the following if you wish to automatically trigger workflow run with every commit
+#
+#  push:
+#    paths:
+#      - 'initiatives/ING_Neo_Security_7e3c907353df4c0ab2fc8700/**'
+#      - 'policies/Subnets_should_have_an_NSG_0271f68d-6b1a-4e3f-91f1-92c0e6d6b284/**'
+#      - 'policies/Deploy_flow_resource_to_network_security_groups_467f5ae1-ea01-4d68-ad74-f0afaee2869d/**'
+#      - 'policies/Deploy_default_allow_azurecloud_outbound_nsg_rule_da652176-3f2f-4c63-8225-032c46a11e0c/**'
+#      - 'policies/Deploy_default_deny_internet_outbound_nsg_rule_da8a2f31-9b97-45e9-bba1-75d825fa5734/**'
+#      - .github/workflows/manage-azure-policy-34cd9027.yml
+jobs:
+  apply-azure-policy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS_34cd9027}}
+        allow-no-subscriptions: true
+    - name: Create or Update Azure Policies
+      uses: azure/manage-azure-policy@v0
+      with:
+        paths: |
+          initiatives/ING_Neo_Security_7e3c907353df4c0ab2fc8700/**
+          policies/Subnets_should_have_an_NSG_0271f68d-6b1a-4e3f-91f1-92c0e6d6b284/**
+          policies/Deploy_flow_resource_to_network_security_groups_467f5ae1-ea01-4d68-ad74-f0afaee2869d/**
+          policies/Deploy_default_allow_azurecloud_outbound_nsg_rule_da652176-3f2f-4c63-8225-032c46a11e0c/**
+          policies/Deploy_default_deny_internet_outbound_nsg_rule_da8a2f31-9b97-45e9-bba1-75d825fa5734/**

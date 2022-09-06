@@ -1,0 +1,130 @@
+{
+ "properties": {
+  "displayName": "Deploy default allow azurecloud outbound nsg rule",
+  "policyType": "Custom",
+  "mode": "Indexed",
+  "metadata": {
+   "category": "Network",
+   "createdBy": "f133267d-b7e3-4372-8331-ef2b6f5c4a4c",
+   "createdOn": "2022-07-13T07:37:26.8801944Z",
+   "updatedBy": "f133267d-b7e3-4372-8331-ef2b6f5c4a4c",
+   "updatedOn": "2022-07-13T07:42:25.9630317Z"
+  },
+  "parameters": {
+   "effect": {
+    "type": "String",
+    "metadata": {
+     "displayName": "Effect",
+     "description": "The effect determines what happens when the policy rule is evaluated to match"
+    },
+    "allowedValues": [
+     "deployIfNotExists",
+     "disabled"
+    ],
+    "defaultValue": "deployIfNotExists"
+   },
+   "nsgRuleName": {
+    "type": "String",
+    "metadata": {
+     "displayName": "NSG rule name",
+     "description": "The name of the NSG rule"
+    },
+    "defaultValue": "AllowAzureCloudOutBound"
+   }
+  },
+  "policyRule": {
+   "if": {
+    "field": "type",
+    "equals": "Microsoft.Network/networkSecurityGroups"
+   },
+   "then": {
+    "effect": "[parameters('effect')]",
+    "details": {
+     "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+     "existenceCondition": {
+      "allOf": [
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/protocol",
+        "equals": "*"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/sourcePortRange",
+        "equals": "*"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/destinationPortRange",
+        "equals": "*"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/sourceAddressPrefix",
+        "equals": "*"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/destinationAddressPrefix",
+        "equals": "AzureCloud"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/access",
+        "equals": "Allow"
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/priority",
+        "equals": 4095
+       },
+       {
+        "field": "Microsoft.Network/networkSecurityGroups/securityRules/direction",
+        "equals": "Outbound"
+       }
+      ]
+     },
+     "roleDefinitionIds": [
+      "/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7"
+     ],
+     "deployment": {
+      "properties": {
+       "mode": "Incremental",
+       "parameters": {
+        "ruleName": {
+         "value": "[concat(field('name'), '/', parameters('nsgRuleName'))]"
+        }
+       },
+       "template": {
+        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+        "contentVersion": "1.0.0.0",
+        "parameters": {
+         "ruleName": {
+          "type": "String"
+         }
+        },
+        "resources": [
+         {
+          "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+          "apiVersion": "2020-11-01",
+          "name": "[parameters('ruleName')]",
+          "properties": {
+           "protocol": "*",
+           "sourcePortRange": "*",
+           "destinationPortRange": "*",
+           "sourceAddressPrefix": "*",
+           "destinationAddressPrefix": "AzureCloud",
+           "access": "Allow",
+           "priority": 4095,
+           "direction": "Outbound",
+           "sourcePortRanges": [],
+           "destinationPortRanges": [],
+           "sourceAddressPrefixes": [],
+           "destinationAddressPrefixes": []
+          }
+         }
+        ]
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "id": "/providers/Microsoft.Management/managementGroups/8981001d-561e-4a3e-b057-d292a447ff3e/providers/Microsoft.Authorization/policyDefinitions/da652176-3f2f-4c63-8225-032c46a11e0c",
+ "type": "Microsoft.Authorization/policyDefinitions",
+ "name": "da652176-3f2f-4c63-8225-032c46a11e0c"
+}
